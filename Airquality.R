@@ -1,8 +1,12 @@
 # 1.The details about this dataset can be found at https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/airquality.html
 
-data("airquality")
-str(airquality)
+rm(list=ls(all=TRUE))   # remove all the objects in the list
+library(ggplot2)        # importing packages
+data("airquality")    # importing the inbuiltdata 
+str(airquality)        #structure of a data frame(data types, values, variables)
 
+
+# Takes only first 6 observations out of 153.
 head(airquality)
 
 # 2. Preprocess the dataset
@@ -22,22 +26,47 @@ for (i in 1:nrow(airquality)){
   }
   
 }
-#Normalize the dataset so that no particular attribute has more impact on clustering algorithm than others.
+#Normalize the dataset so that no particular attribute has more impact on clustering algorithm than others. To get into similar ranges.
 normalize<- function(x){
   return((x-min(x))/(max(x)-min(x)))
 }
-airquality<- normalize(airquality) # replace contents of dataset with normalized values
+
+# calculating normalized value for ozone=8
+(8-min(airquality))/(max(airquality)-min(airquality)) 
+airquality2 <- normalize(airquality)  # assigning the normalized data set to airquality2 variable
 
 # 3. Apply k-means clustering algorithm
 
-result<- kmeans(airquality[c(1,2,3,4)],3) # apply k-means algorithmusing first 4 attributes and with k=3(no. of required clusters)
+set.seed(4) # to fix the random centroids(we can put any number in seed)
+
+# apply k-means algorithm using first 4 attributes and with k=3(no. of required clusters)
+result<- kmeans(airquality2[,c(1,2,3,4)],3) 
 result$size # gives no. of records in each cluster
 
+# final centroids
 result$centers
+# cluster assign to each row
 result$cluster
 
 # 4. Visualize clustering results
-par(mfrow=c(1,2), mar=c(5,4,2,2))
-plot(airquality[,1:2], col=result$cluster) # Plot to see how Ozone and Solar.R data points have been distributed in clusters
 
-plot(airquality[,3:4], col=result$cluster) # Plot to see how Wind and Temp data points have been distributed in clusters
+# Creating a new attribute 'cluster' for visualization
+
+airquality$cluster = as.factor(result$cluster)  # for legend 
+
+# Scatter plot between ozone and solar by each cluster 
+# Plot to see how ozone and solar data points have been distributed in clusters
+ggplot(airquality, aes(x=Ozone, y=Solar.R, color=cluster))+geom_point()+theme_bw()
+
+
+# Plot to see how Wind and Temp data points have been distributed in clusters
+ggplot(airquality, aes(x=Temp, y=Solar.R, color=cluster))+geom_point()+theme_bw()
+
+# Export data files to local system
+write.csv(airquality, "C:/Users/s530936/Downloads/DV/Airquality_Data.csv")
+write.csv(airquality2, "C:/Users/s530936/Downloads/DV/kmeansppt/Airquality_NormalizeData.csv")
+getwd()
+
+
+
+
